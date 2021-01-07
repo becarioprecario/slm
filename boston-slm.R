@@ -44,7 +44,7 @@ summary(m3 <- lagsarlm(f1, boston.c, lw, type = "mixed"))
 #DEFINE PRIORS TO BE USED WITH R-INLA
 
 #Zero-variance for Gaussian error term
-zero.variance <- list(prec = list(initial = 25, fixed = TRUE))
+zero.variance <- list(prec = list(initial = 15, fixed = TRUE))
 
 #Compute eigenvalues for SLM model (as in Havard's code)
 e <- eigenw(lw)
@@ -275,7 +275,9 @@ plot(sdemm1rw2, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
 #SLX model
 fslxrw2 <- update(fslx, . ~ . - var5 - var18)
 fslxrw2 <- update(fslxrw2, . ~ . + 
-  f(var5, model = "rw2", hyper = list(theta = list(param = c(1, 1)))) )
+#  f(var5, model = "rw2", hyper = list(theta = list(param = c(1, 1)))) )
+  f(inla.group(var5), model = "rw2",
+    hyper = list(theta = list(param = c(1, 1)))) )
 
 slxm1rw2 <- inla(fslxrw2,
    data = boston.c2, family = "gaussian",
