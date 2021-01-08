@@ -112,7 +112,7 @@ slmm1 <- inla( log(CMEDV) ~ -1 +
 
 # Use sampling to estimate fitted values
 # SLM model
-sampm1 <- inla.posterior.sample(1000, slmm1)
+sampm1 <- inla.posterior.sample(2000, slmm1)
 
 #n.areas: Number of areas
 #W: adjacency amtrix (as Matrix)
@@ -124,8 +124,8 @@ fun_fitted <- function(..., n.areas, W) {
    # Add white noise
    XBe <- (mmatrix %*% matrix(coeffs, ncol = 1)) +
      matrix(rnorm(n.areas, 0, exp(- theta[1] / 2)), ncol = 1)
-   print(dim(XBe))
-   print(summary(XBe[, 1]))
+   
+   
    res <- as.vector(solve(Diagonal(n.areas, x = 1) - rho * W, XBe))
 
    return(res)
@@ -169,9 +169,22 @@ compute_impacts_slm <- function(..., n.areas, e.values,
 }
 
 # Compute impacts
-n.var <- 5
+# Load MCMC data
+load("Roger_files/Boston/sar_g.RData")
+
+# Eigenvalues of W
+e.values <- eigen(W)$values
+
+# Fit SLM model using ML 
+example(boston.c, run.dontrun=TRUE)
+
+for(n.var in 1:13) {
+#n.var <- 13
+var.name <- colnames(mmatrix)[1 + n.var]
+
+# Compute impacts
 impact.SLM <- inla.posterior.sample.eval(compute_impacts_slm, sampm1,
- n.areas = 490, e.values = eigen(W)$values, n.var = n.var, intercept = TRUE)
+ n.areas = 490, e.values = e.values, n.var = n.var, intercept = TRUE)
 
 #Summary of impacts
 apply(impact.SLM, 1, mean)
@@ -179,16 +192,40 @@ apply(impact.SLM, 1, sd)
 
 
 # Compute impacts using ML
-example(boston.c, run.dontrun=TRUE)
 impacts.ML <- impacts(gp2, listw = nb2listw(boston.soi))
 
-# Display INLA posterior marginals and ML estimates
-par(mfrow = c(1, 3))
-plot(density(impact.SLM[1, ]), main = "Avg. dir. imp.")
-abline(v = impacts.ML$direct[n.var])
-plot(density(impact.SLM[2, ]), main = "Avg. indir. imp.")
-abline(v = impacts.ML$indirect[n.var])
-plot(density(impact.SLM[3, ]), main = "Avg. total imp.")
-abline(v = impacts.ML$total[n.var])
 
+# Display INLA posterior marginals and ML estimates of IMPACTS
+par(mfrow = c(1, 3))
+plot(density(impact.SLM[1, ]), main = paste0("Avg. dir. imp., ", var.name))
+lines(density(sar_g_direct[, n.var]), col = "red")
+abline(v = impacts.ML$direct[n.var])
+plot(density(impact.SLM[2, ]), main = paste0("Avg. indir. imp., ", var.name))
+lines(density(-sar_g_direct[, n.var] + sar_g_total[, n.var]), col = "red")
+abline(v = impacts.ML$indirect[n.var])
+plot(density(impact.SLM[3, ]), main = paste0("Avg. total imp., ", var.name))
+lines(density(sar_g_total[, n.var]), col = "red")
+abline(v = impacts.ML$total[n.var])
+}
+
+# Display INLA, ML and MCMC estimates of model parameters
+
+# Fixed effects
+par(mfrow = c(4,4))
+for(i in 1:(13 + 1)) {
+  plot(slmm1$marginals.random$idx[[n + i]], main = colnames(mmatrix)[i],
+    type = "l")
+  lines(density(sar_g[, i]), col = "red")
+}
+
+# Spatial autocorrelation
+marg.rho <- inla.tmarginal(function(x) { rho.min + x * (rho.max - rho.min)},
+  slmm1$marginals.hyperpar[[2]])
+plot(marg.rho, type = "l", main = "Spat. autoc.")
+lines(density(sar_g[, 15]), col = "red")
+
+
+# Precision
+plot(slmm1$marginals.hyperpar[[1]], type = "l", main = "Precision")
+lines(density(1 / sar_g[, 16]), col = "red")
 
