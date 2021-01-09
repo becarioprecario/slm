@@ -249,7 +249,7 @@ dev.off()
 #SET Matlab code and compare to the approximations for all variables
 
 #SLM
-load("Roger_files/Boston/sar_g.RData")
+load("Boston_MCMC_Matlab/sar_g.RData")
 pdf(file = "totimp-slm.pdf")
 par(mfrow = c(4, 4))
 for(i in 1:13) {
@@ -262,7 +262,7 @@ dev.off()
 
 
 #SDM
-load("Roger_files/Boston/sdm_g.RData")
+load("Boston_MCMC_Matlab/sdm_g.RData")
 pdf(file = "totimp-sdm.pdf")
 par(mfrow = c(4, 4))
 for(i in 1:13) {
