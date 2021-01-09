@@ -95,7 +95,7 @@ semm1 <- inla(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2)+ I(RM^2) +
    f(idx, model = "slm", args.slm = args.slm, hyper = hyper.slm),
    data = as(boston.c, "data.frame"), family = "gaussian",
    control.family = list(hyper = zero.variance),
-   control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
+   control.compute = list(dic = TRUE, cpo = TRUE)
 )
 
 #SLM model
@@ -117,7 +117,7 @@ sdmm1 <- inla( log(CMEDV) ~ -1 +
       hyper = hyper.slm),
    data = as(boston.c, "data.frame"), family = "gaussian",
    control.family = list(hyper = zero.variance),
-   control.compute = list(dic = TRUE, cpo = TRUE)
+   control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
 )
 
 #SDEM model (this requires a previous setup)
@@ -275,9 +275,9 @@ plot(sdemm1rw2, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
 #SLX model
 fslxrw2 <- update(fslx, . ~ . - var5 - var18)
 fslxrw2 <- update(fslxrw2, . ~ . + 
-#  f(var5, model = "rw2", hyper = list(theta = list(param = c(1, 1)))) )
-  f(inla.group(var5), model = "rw2",
-    hyper = list(theta = list(param = c(1, 1)))) )
+  f(var5, model = "rw2", hyper = list(theta = list(param = c(1, 1)))) )
+#  f(inla.group(var5), model = "rw2",
+#    hyper = list(theta = list(param = c(1, 1)))) )
 
 slxm1rw2 <- inla(fslxrw2,
    data = boston.c2, family = "gaussian",
