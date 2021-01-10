@@ -180,27 +180,16 @@ slmmarg <- inla.tmarginal(ff, slmm1$marginals.hyperpar[[2]])
 sdmmarg <- inla.tmarginal(ff, sdmm1$marginals.hyperpar[[2]])
 sdemmarg <- inla.tmarginal(ff, sdemm1$marginals.hyperpar[[2]])
 
-#Create table with summary values of spatial autocorrelations  in the
-#R-INLA INTERNAL SCALE
-#
-tabrho <- data.frame(
-   SEM = semm1$summary.hyper[2, c(1, 2, 3, 5)],
-   SLM = slmm1$summary.hyper[2, c(1, 2, 3, 5)],
-   SDM = sdmm1$summary.hyper[2, c(1, 2, 3, 5)],
-   SDEM = sdemm1$summary.hyper[2, c(1, 2, 3, 5)]#,
-#   SLX=as.numeric(NA)#slxm1$summary.hyper[2,1]
-)
-#xtable(round(tabrho, 4), digits=3)
-
-
 #Transformed data
 #Given that the transformation is linear this is a shortcut to get
 #summary statistics
-tabrhotrans <- tabrho
-tabrhotrans[1, ] <- tabrhotrans[1, ] * (rho.max - rho.min) + rho.min
-tabrhotrans[2, ] <- tabrhotrans[2, ] * (rho.max - rho.min)#+rho.min
-tabrhotrans[3, ] <- tabrhotrans[3, ] * (rho.max - rho.min) + rho.min
-tabrhotrans[4, ] <- tabrhotrans[4, ] * (rho.max - rho.min) + rho.min
+tabrhotrans <- data.frame(cbind(
+   SEM = unlist(inla.zmarginal(semmarg)[c(1, 2, 3, 7)], FALSE),
+   SLM = unlist(inla.zmarginal(slmmarg)[c(1, 2, 3, 7)], FALSE),
+   SDM = unlist(inla.zmarginal(sdmmarg)[c(1, 2, 3, 7)], FALSE),
+   SDEM = unlist(inla.zmarginal(sdemmarg)[c(1, 2, 3, 7)], FALSE)
+#   SLX = as.numeric(NA)#slxm1$summary.hyper[2,1]
+))
 
 xtable(round(tabrhotrans, 4), digits = 3)
 
