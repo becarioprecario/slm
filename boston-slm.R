@@ -1,5 +1,6 @@
 #
 #Re-analysis of the Boston data set using the new 'slm' latent class in R-INLA
+#  This example removes the areas with censored observations
 #
 
 #Load libraries
