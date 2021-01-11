@@ -1,5 +1,6 @@
 #
-#Compute impacts using the models fitted to the Katrina dataset
+# Compute impacts using the models fitted to the Katrina dataset
+# Impacts are computed using sampling
 #
 
 #Load libraries
@@ -7,9 +8,60 @@ library(INLA)
 library(INLABMA)
 library(spdep)
 library(parallel)
+source("utils_slm.R")
 
 load("katrina-slm.RData")
 
+
+# Obtain samples
+samp_semm1 <- inla.posterior.sample(2000, semm1)
+samp_sdemm1 <- inla.posterior.sample(2000, sdemm1)
+
+
+# Impacts SEM
+imp_semm1 <- inla.posterior.sample.eval(compute_impacts_sem_probit, samp_semm1,
+  n.areas = nrow(Katrina), e.values = NULL, n.var = 1, mmatrix = mm)
+# Impacts SDEM
+colnames(mm2) <- rownames(sdemm1$summary.fixed)
+imp_sdemm1 <- inla.posterior.sample.eval(compute_impacts_sem_probit,
+  samp_sdemm1, n.areas = nrow(Katrina), e.values = NULL, n.var = 1,
+  lag = TRUE, mmatrix = mm2)
+
+# Check
+apply(imp_semm1, 1, mean)
+apply(imp_sdemm1, 1, mean)
+
+
+# Impacts for SLM and SDM spatial probit models
+
+
+
+source("utils_slm.R")
+
+
+
+# Sampling
+samp_slmm1 <- inla.posterior.sample(2000, slmm1)
+samp_sdmm1 <- inla.posterior.sample(2000, sdmm1)
+
+
+# Impacts SLM
+imp_slmm1 <- inla.posterior.sample.eval(compute_impacts_slm_probit, samp_slmm1,
+  W = W1, n.areas = nrow(Katrina), n.var = 2, mmatrix = mm)
+apply(imp_slmm1, 1, mean)
+
+# Impacts SDEM
+#colnames(mm2) <- rownames(sdemm1$summary.fixed)
+imp_sdmm1 <- inla.posterior.sample.eval(compute_impacts_slm_probit,
+  samp_sdmm1, W = W1, n.areas = nrow(Katrina), e.values = NULL, n.var = 1,
+  lag = TRUE, mmatrix = mm2)
+
+# Check
+apply(imp_slmm1, 1, mean)
+apply(imp_sdmm1, 1, mean)
+
+
+stop("")
 
 #Compute some indices to be used later
 #Position of beta's in the random effects vector
