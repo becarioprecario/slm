@@ -53,7 +53,7 @@ compute_impacts_slm <- function(..., n.areas, e.values,
     rho.e.values <- e.values
     trIrhoWW <- sum(e.values)
     for(i in 1:10) {
-      rho.e.values <- rho * e.values * rho.e.values / i
+      rho.e.values <- rho * e.values * rho.e.values
       trIrhoWW  <- trIrhoWW  + sum(rho.e.values)
     }
 
@@ -71,7 +71,7 @@ compute_impacts_slm <- function(..., n.areas, e.values,
 
 
 # Compute impacts for first covariate
-compute_impacts_sem_probit <- function(..., n.areas, e.values,
+compute_impacts_sem_probit <- function(..., n.areas,
   n.var, intercept = TRUE, lag = FALSE, mmatrix) {
 
   # Number of covariates + lagged covariates; used for lagged covariates
@@ -113,6 +113,28 @@ compute_impacts_sem_probit <- function(..., n.areas, e.values,
 }
 
 
+# Compute all impacts
+# inla_samples: Samples from inla.posterior.sample
+# n.var: NOW the number of covariates to compute the impacts
+compute_impacts_sem_probit_all <- function(inla_samples, n.areas,
+  n.var, intercept = TRUE, lag = FALSE, mmatrix) {
+
+  res <- data.frame(sapply(1:n.var, function(X) {
+    impacts <- inla.posterior.sample.eval(compute_impacts_sem_probit,
+      inla_samples, n.areas = n.areas, n.var = X, lag = lag,
+      mmatrix = mmatrix)
+
+    impacts <- c(apply(impacts, 1, mean), apply(impacts, 1, sd))
+    return(impacts)
+  }))
+  
+
+  colnames(res) <- colnames(mmatrix)[intercept + 1:n.var]
+  rownames(res) <- c("direct (mean)", "indirect (mean)", "total (mean)",
+    "direct (s.d.)", "indirect (s.d.)", "total (s.d.)")
+
+  return(res)
+}
 
 # Compute impacts for first covariate
 compute_impacts_slm_probit <- function(..., n.areas, W,
@@ -178,5 +200,29 @@ compute_impacts_slm_probit <- function(..., n.areas, W,
   indir.impact <- total.impact - dir.impact
 
   return(c(dir.impact, indir.impact, total.impact))
+}
+
+
+# Compute all impacts
+# inla_samples: Samples from inla.posterior.sample
+# n.var: NOW the number of covariates to compute the impacts
+compute_impacts_slm_probit_all <- function(inla_samples, n.areas,
+  W, n.var, intercept = TRUE, lag = FALSE, mmatrix) {
+
+  res <- data.frame(sapply(1:n.var, function(X) {
+    impacts <- inla.posterior.sample.eval(compute_impacts_slm_probit,
+      inla_samples, n.areas = n.areas, W = W, n.var = X, lag = lag,
+      mmatrix = mmatrix)
+
+    impacts <- c(apply(impacts, 1, mean), apply(impacts, 1, sd))
+    return(impacts)
+  }))
+  
+
+  colnames(res) <- colnames(mmatrix)[intercept + 1:n.var]
+  rownames(res) <- c("direct (mean)", "indirect (mean)", "total (mean)",
+    "direct (s.d.)", "indirect (s.d.)", "total (s.d.)")
+
+  return(res)
 }
 
