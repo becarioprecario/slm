@@ -8,6 +8,8 @@ library(INLA)
 library(INLABMA)
 library(spdep)
 library(parallel)
+options(mc.cores = 3)
+
 source("utils_slm.R")
 
 load("katrina-slm.RData")
@@ -199,13 +201,16 @@ impacts(fit2lag)
 }
 
 
-#Compute direct impacts (flood_depth) for 
+#Compute direct impacts (flood_depth) for several models
+idx.cov <- 2 #Flood depth
+n.cov <- 8 #Number of covariates
+
 #SEM model using output from spatialprobit
 # S_r(W) = D(f(eta)) * I_n*beta_r
 eta <- fit1$X %*% t(fit1$bdraw) #Fitted values 673 x 25000
 Dfeta<- dnorm(eta)
 
-dirimp.sem <- apply(Dfeta, 2, sum) * fit1$bdraw[, 2] / n
+dirimp.sem <- apply(Dfeta, 2, sum) * fit1$bdraw[, idx.cov] / n
 totimp.sem <- dirimp.sem
 #TOtal impacts = direct impacts
 #Indirect impacts = 0
@@ -215,17 +220,57 @@ totimp.sem <- dirimp.sem
 # S_r(W) = D(f(eta)) * I_n*(beta_r + W gamma_r)
 eta.sdem <- fit1lag$X %*% t(fit1lag$bdraw) #Fitted values 673 x 25000
 Dfeta.sdem<- dnorm(eta.sdem)
-dirimp.sdem <- apply(Dfeta.sdem, 2, sum) * fit1lag$bdraw[, 2] / n
+dirimp.sdem <- apply(Dfeta.sdem, 2, sum) * fit1lag$bdraw[, idx.cov] / n
 
 indirimp.sdem <- apply(Dfeta.sdem, 2, function(X) {
    sum(Diagonal(n, X) %*% fit1lag$W)
-}) * fit1lag$bdraw[, 2 + 8] /  n
+}) * fit1lag$bdraw[, idx.cov + n.cov] /  n
 
 totimp.sdem <- dirimp.sdem + indirimp.sdem
 
-stop("")
+#Compute impacts for SDM
+# S_r(W) = D(f(eta)) * (I_n - rho * W)^{-1} * (beta_r + W gamma_r)
+eta.sdm <- fit2lag$X %*% t(fit2lag$bdraw) #Fitted values 673 x 25000
+Dfeta.sdm<- dnorm(eta.sdm)
+totimp.sdm <- apply(Dfeta.sdm, 2, sum) * (1 / (1 - fit2lag$pdraw)) *
+  (fit2lag$bdraw[, idx.cov] + fit2lag$bdraw[, idx.cov + n.cov])/ n
 
-#Compute marginal of total impacts for SLM
+# DIrect imapcts
+#evalues <- eigen(fit2lag$W)$values
+
+#dirimp.sdm <- sapply(1:nrow(fit2lag$bdraw), function(X) {
+dirimp.sdm <- unlist(mclapply(sample(1:nrow(fit2lag$bdraw), 5000), function(X) {
+
+  DETA <- Diagonal(n, x = Dfeta.sdm[, X])
+
+  coeff <- fit2lag$bdraw[X, idx.cov]
+  coeff_lag <- fit2lag$bdraw[X, idx.cov + n.cov]
+
+  rho <- fit2lag$pdraw[X]
+
+  TRACES <- rep(NA, 11 + 1)
+  TRACES[1] <- mean(diag(DETA))
+  TRACES[2] <- 0
+
+  AUX <- DETA %*% fit2lag$W
+  for(i in 3:(11 + 1)) {
+    AUX <- AUX %*% fit2lag$W
+    TRACES[i] <- mean(diag(AUX))
+  }
+
+  dir.impact <- coeff * sum((rho^(0:10)) * TRACES[1:11])
+  dir.impact <- dir.impact +
+      coeff_lag * sum((rho^(0:10) * TRACES[1 + 1:11]))
+
+  return(dir.impact)
+}))
+
+indimp.sdm <- totimp.sdm - dirimp.sdm 
+
+
+
+
+
 #And compare to those obtained with MCMC
 #RESULTS: They look very close
 
@@ -243,7 +288,7 @@ c(tabdi$INLASLM[1], tabii$INLASLM[1], tabti$INLASLM[1])
 
 # Display posterior densities of impacts
 
-pdf("katrina-impacts-fllod-depth.pdf")
+pdf("katrina-impacts-flood-depth.pdf")
 par(mfrow = c(1, 3))
 plot(density(imp_slmm1[1,]), type = "l", main = "direct (f.d.)")
 lines(density(sarp$results$direct[, 1]), col = "red")
@@ -303,24 +348,30 @@ pdf(file="flooddepth-impacts.pdf")
 par(mfrow=c(2,2))
 
 #SEM
-plot(density(imp_semm1[3, ]), type = "l", main = "SEM: total (f.d.)")
+plot(density(imp_semm1[3, ]), type = "l", main = "SEM: total (f.d.)",
+  ylim = c(0, 32))
 lines(density(totimp.sem), lty = 1, lwd = 3)
 legend("topleft", legend = c("INLA", "MCMC"), lwd = c(1, 3), bty = "n")
 
 #SDEM
-plot(density(imp_sdemm1[3,]), type = "l", main = "SDEM: total (f.d.)")
+plot(density(imp_sdemm1[3,]), type = "l", main = "SDEM: total (f.d.)",
+  ylim = c(0, 32))
 lines(density(totimp.sdem), lty = 1, lwd = 3)
 legend("topleft", legend = c("INLA", "MCMC"), lwd = c(1, 3), bty = "n")
 
 #SLM
-plot(density(imp_slmm1[3,]), type = "l", main = "SLM: total (f.d.)")
-lines(density(fit2$total[,1]), lty=1, lwd = 3)#SLM
+plot(density(imp_slmm1[3,]), type = "l", main = "SLM: total (f.d.)",
+  ylim = c(0, 32))
+lines(density(fit2$total[, idx.cov - 1]), lty = 1, lwd = 3)#SLM
 legend("topleft", legend = c("INLA", "MCMC"), lwd = c(1, 3), bty = "n")
 
 #SDM
-plot(density(imp_sdmm1[3,]), type = "l", main = "SDM: total (f.d.)")
-lines(density((fit2lag$total[, 1] + fit2lag$total[, 1 + 8])), lty = 1,
-  lwd = 3)#SDM
+plot(density(imp_sdmm1[3,]), type = "l", main = "SDM: total (f.d.)",
+  ylim = c(0, 32))
+lines(density(totimp.sdm), lty = 1, lwd = 3)#SDM
+# REMOVE: The total impacts od the SDM is not the sum of the total impacts
+#   of covariate plus lag_covariate
+# lines(density((fit2lag$total[, idx.cov - 1] + fit2lag$total[, idx.cov - 1 + n.cov])), lty = 1, lwd = 3, col = "red")#SDM
 legend("topleft", legend = c("INLA", "MCMC"), lwd = c(1, 3), bty = "n")
 
 dev.off()
