@@ -147,6 +147,7 @@ tabfixed <- data.frame(
   SLX = slxm1$summary.fixed[1:(1 + 8), 1],
   SLXlag = c(NA, slxm1$summary.fixed[9 + 1:8, 1])
 )
+rownames(tabfixed) <- colnames(mm)
 
 #Table in LaTeX format
 library(xtable)
