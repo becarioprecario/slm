@@ -120,7 +120,7 @@ rownames(tabdi) <- attr(impm2, "bnames")
 #DIRECT IMPACTS
 tabin <- data.frame(MLSLM = impm2$indirect, INLASLM = imp_slmm1[2, ],
   MLSDM = impm3$indirect, INLASDM = imp_sdmm1[2, ])
-rownames(tabdi) <- attr(impm2, "bnames")
+rownames(tabin) <- attr(impm2, "bnames")
 
 #ADD SDEM
 tabti$INLASDEM <- sdemm1$summary.lincomb.derived[, "mean"]

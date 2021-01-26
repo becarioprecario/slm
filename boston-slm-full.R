@@ -164,6 +164,8 @@ tabfixed<-data.frame(
    SLX = slxm1$summary.fixed[1:(1 + 13), 1],
    SLXlag = c(NA, slxm1$summary.fixed[14 + 1:13, 1])
 )
+rownames(tabfixed) <- colnames(mmatrix)
+
 
 #Create table in LaTeX format
 library(xtable)
