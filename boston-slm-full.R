@@ -4,24 +4,26 @@
 
 #Load libraries
 library(INLA)
-library(spdep)
+library(spatialreg)
 library(parallel)
 
 
 #Load data
 #data(boston)
-library(maptools)
-boston.tr <- readShapePoly(system.file("etc/shapes/boston_tracts.shp",
-  package="spdep")[1], ID="poltract",
-  proj4string=CRS(paste("+proj=longlat +datum=NAD27 +no_defs +ellps=clrk66",
-  "+nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat")))
-boston_nb <- poly2nb(boston.tr)
+#library(maptools)
+library(sf)
+boston.tr <- st_read(system.file("shapes/boston_tracts.shp", package="spData")[1])
+#readShapePoly(system.file("etc/shapes/boston_tracts.shp",
+#  package="spdep")[1], ID="poltract",
+#  proj4string=CRS(paste("+proj=longlat +datum=NAD27 +no_defs +ellps=clrk66",
+#  "+nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat")))
+boston_nb <- spdep::poly2nb(boston.tr)
 censored <- boston.tr$CMEDV == 50
 
 #Set censored areas to NA for spatial prediction
 boston.c <- boston.tr
 boston.c$CMEDV[censored]<-NA
-lw <- nb2listw(boston_nb, style="W")
+lw <- spdep::nb2listw(boston_nb, style="W")
 
 
 #Define some indices used in the models
@@ -99,7 +101,7 @@ hyper.slm = list(
 semm1<-inla(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + I(NOX^2)+ I(RM^2) +  
    AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT)+
    f(idx, model="slm", args.slm=args.slm, hyper=hyper.slm),
-   data=as(boston.c, "data.frame"), family="gaussian",
+   data=as.data.frame(boston.c), family="gaussian",
    control.family = list(hyper=zero.variance),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
@@ -110,7 +112,7 @@ slmm1<-inla( log(CMEDV) ~ -1 +
       args.slm=list(rho.min = rho.min, rho.max = rho.max, W=W, X=mmatrix, 
          Q.beta=Q.beta), 
       hyper=hyper.slm),
-   data=as(boston.c, "data.frame"), family="gaussian",
+   data=as.data.frame(boston.c), family="gaussian",
    control.family = list(hyper=zero.variance),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
@@ -121,7 +123,7 @@ sdmm1<-inla( log(CMEDV) ~ -1 +
       args.slm=list(rho.min = rho.min, rho.max = rho.max, W=W, X=mmatrix2, 
          Q.beta=Q.beta2), 
       hyper=hyper.slm),
-   data=as(boston.c, "data.frame"), family="gaussian",
+   data=as.data.frame(boston.c), family="gaussian",
    control.family = list(hyper=zero.variance),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
@@ -302,12 +304,14 @@ dev.off()
 #Add map of SEM and SDEM random effects
 boston.c$SEM<-semm1$summary.random$idx$mean
 boston.c$SDEM<-sdemm1$summary.random$idx$mean
+library(tmap)
 
-ats<-seq(-.8, .8, by=.1)
-cls<-grey.colors(length(ats)+1)
+#ats<-seq(-.8, .8, by=.1)
+#cls<-grey.colors(length(ats)+1)
 pdf(file="slm-effects-full.pdf", width=8, height=4)
-print(spplot(boston.c, c("SEM", "SDEM"), at=ats, col.regions=cls, 
-col="transparent"))
+tm_shape(boston.c) + tm_fill(c("SEM", "SDEM"), style="fisher", n=8, midpoint=0, title="Random effects") + tm_facets(free.scales=FALSE)  + tm_layout(panel.labels=c("SEM", "SDEM"), bg="grey95")
+#print(spplot(boston.c, c("SEM", "SDEM"), at=ats, col.regions=cls, 
+#col="transparent"))
 dev.off()
 
 
@@ -353,13 +357,14 @@ dev.off()
 
 
 #Plot to check some of the areas in the prediction
-boston.c$CENS<-""
+boston.c$CENS<-"included"
 boston.c$CENS[which(censored)]<- "censored"
 boston.c$CENS[13:17]<- "below cens. line" #Post. marg. well below censoring line
 boston.c$CENS <- as.factor(boston.c$CENS)
 
 pdf(file = "location_predicted_areas.pdf")
-spplot(boston.c, "CENS")
+tm_shape(boston.c) + tm_fill("CENS")
+#spplot(boston.c, "CENS")
 dev.off()
 
 

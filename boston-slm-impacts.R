@@ -5,7 +5,7 @@
 #Load libraries
 library(INLA)
 library(INLABMA)
-library(spdep)
+library(spatialreg)
 library(parallel)
 
 load("boston-slm.RData")
@@ -112,8 +112,9 @@ trIrhoWgsdm<-inla.tmarginal(function(rho){
 
 
 #Compute impacts for ML models
-impm2<-impacts(m2, listw=lw)#SLM
-impm3<-impacts(m3, listw=lw)#SDM
+trs <- trW(as(lw, "CsparseMatrix"))
+impm2<-impacts(m2, tr=trs)#SLM
+impm3<-impacts(m3, tr=trs)#SDM
 
 
 
@@ -220,7 +221,7 @@ lines(sdemm1$marginals.hyperpar[[2]], lty=4)
 legend(.80, 30, c("SEM", "SLM", "SDM", "SDEM"), lty=1:4, bty="n")
 
 dev.off()
-system("convert Boston-rho-orig.pdf Boston-rho-orig.eps")
+#system("convert Boston-rho-orig.pdf Boston-rho-orig.eps")
 
 
 
@@ -236,7 +237,7 @@ lines(sdemmarg, lty=4)
 legend(.60, 15, c("SEM", "SLM", "SDM", "SDEM"), lty=1:4, bty="n")
 
 dev.off()
-system("convert Boston-rho-trans.pdf Boston-rho-trans.eps")
+#system("convert Boston-rho-trans.pdf Boston-rho-trans.eps")
 
 
 
@@ -248,7 +249,7 @@ system("convert Boston-rho-trans.pdf Boston-rho-trans.eps")
 #Use Gaussian approximation with mean and variance of the product of
 #two random variables
 #E[X * Y] =E[X] * E[Y]
-#VAR[X * Y]=(E[X]^2) * VAR[Y]+(E[Y]^2) * VAR[X] + VAR[X]¯* VAR[Y]
+#VAR[X * Y]=(E[X]^2) * VAR[Y]+(E[Y]^2) * VAR[X] + VAR[X] * VAR[Y]
 #          =E[X^2]*E[Y^2]-(E[X]*E[Y])^2 
 #X=1/(1-\rholag))
 #Y=\beta_r
@@ -294,7 +295,11 @@ dev.off()
 #SET Matlab code and compare to the approximations for all variables
 
 #SLM
-load("Roger_files/Boston/sar_g.RData")
+#load("sar_g.RData")
+sar_spBreg_lag <- spBreg_lag(f1, data=boston.c, listw=lw, Durbin=FALSE, control=list(ndraw=25000L, nomit=5000L))
+trs <- trW(as(lw, "CsparseMatrix"))
+sar_imps <- impacts(sar_spBreg_lag, tr=trs)
+
 pdf(file="totimp-slm.pdf")
 par(mfrow=c(4,4))
 for(i in 1:13)
@@ -302,7 +307,7 @@ for(i in 1:13)
 appslm<-appimpacts(
    inla.zmarginal(invrhoslm,TRUE)$mean, slmm1$summary.random$idx[490+1+i,]$mean,
    inla.zmarginal(invrhoslm,TRUE)$sd, slmm1$summary.random$idx[490+1+i,]$sd)
-plot(density(sar_g_total[,i]), main=colnames(mmatrix)[1+i])
+plot(density(sar_imps$sres$total[,i]), main=colnames(mmatrix)[1+i])
 curve(dnorm(x, mean=appslm$meanXY, sd=sqrt(appslm$varXY)), lty=2, col="red",
    add=TRUE)
 }
@@ -310,7 +315,10 @@ dev.off()
 
 
 #SDM
-load("Roger_files/Boston/sdm_g.RData")
+#load("sdm_g.RData")
+sdm_spBreg_lag <- spBreg_lag(f1, data=boston.c, listw=lw, Durbin=TRUE, control=list(ndraw=25000L, nomit=5000L))
+sdm_imps <- impacts(sdm_spBreg_lag, tr=trs)
+
 pdf(file="totimp-sdm.pdf")
 par(mfrow=c(4,4))
 for(i in 1:13)
@@ -318,7 +326,7 @@ for(i in 1:13)
 appsdm<-appimpacts(
    inla.zmarginal(invrhosdm,TRUE)$mean, sdmm1$summary.lincomb.derived[i,]$mean,
    inla.zmarginal(invrhosdm,TRUE)$sd, sdmm1$summary.lincomb.derived[i,]$sd)
-plot(density(sdm_g_total[,i]), main=colnames(mmatrix)[1+i])
+plot(density(sdm_imps$sres$total[,i]), main=colnames(mmatrix)[1+i])
 curve(dnorm(x, mean=appsdm$meanXY, sd=sqrt(appsdm$varXY)), lty=2, col="red",
    add=TRUE)
 }
@@ -333,10 +341,10 @@ plot(semm1$marginals.fixed$`I(NOX^2)`, lty = 2, type="l", xlim=c(-2, .5),
   ylim=c(0,3.1))
 #SLM
 curve(dnorm(x, mean=appslmnox$meanXY, sd=sqrt(appslmnox$varXY)), lty=1, add=TRUE)
-lines(density(sar_g_total[,5]), lty=1, lwd=3)
+lines(density(sar_imps$sres$total[,5]), lty=1, lwd=3)
 #SDM
 curve(dnorm(x, mean=appsdmnox$meanXY, sd=sqrt(appsdmnox$varXY)), lty=3, add=TRUE)
-lines(density(sdm_g_total[,5]), lty=3, lwd=3)
+lines(density(sdm_imps$sres$total[,5]), lty=3, lwd=3)
 #SDEM
 lines(sdemm1$marginals.lincomb.derived$var5, lty=4)
 #SLX
