@@ -25,7 +25,7 @@ mm <- model.matrix(y1~ 1+flood_depth+log_medinc+small_size+large_size+
 # LeSage et al. (2011) use k=11 nearest neighbors in this case
 nb <- knn2nb(knearneigh(cbind(Katrina$lat, Katrina$long), k=11))
 listw <- nb2listw(nb, style="W")
-W1 <- as(as_dgRMatrix_listw(listw), "CsparseMatrix")
+W1 <- as(listw, "CsparseMatrix")
 
 
 #Variance-covarinace matrix for beta coeffients' prior
@@ -55,7 +55,7 @@ m2inlaK = inla(y1~ -1 +
                 rho = list(prior = "logitbeta", param = c(1, 1)))),
         data = Katrina,
         family = "binomial",
-        control.family = list(link = "probit", hyper=zero.variance),
+        control.family = list(link = "probit"),
         control.compute=list(dic=TRUE),
         verbose=FALSE)
 

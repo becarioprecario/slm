@@ -17,9 +17,9 @@ Katrina$idx<-1:n
 
 # (a) 0-3 months time horizon
 # LeSage et al. (2011) use k=11 nearest neighbors in this case
-nb <- knn2nb(knearneigh(cbind(Katrina$lat, Katrina$long), k=11))
+nb <- knn2nb(knearneigh(cbind(Katrina$long, Katrina$lat), k=11, longlat=TRUE))
 listw <- nb2listw(nb, style="W")
-W1 <- as(as_dgRMatrix_listw(listw), "CsparseMatrix")
+W1 <- as(listw, "CsparseMatrix")
 
 
 #Model matrix for SLM models
@@ -79,7 +79,7 @@ hyper.slm = list(
 semm1<-inla(
    update(f1, ~.+f(idx, model="slm", args.slm=args.slm, hyper=hyper.slm)),
    data=Katrina, family="binomial",
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
@@ -90,7 +90,7 @@ slmm1<-inla( y1 ~ -1 +
          Q.beta=Q.beta1),
       hyper=hyper.slm),
    data=Katrina, family="binomial",
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
@@ -102,7 +102,7 @@ sdmm1<-inla( y1 ~ -1 +
          Q.beta=Q.beta2),
       hyper=hyper.slm),
    data=Katrina, family="binomial",
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
@@ -120,7 +120,7 @@ fsdem<-as.formula(paste("y1 ~ ", paste(names(Katrina2)[1:16], collapse=" + "), "
 #Fit SDEM model
 sdemm1<-inla(fsdem,
    data=Katrina2, family="binomial",
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
@@ -129,7 +129,7 @@ fslx<-as.formula(paste("y1 ~ ", paste(names(Katrina2)[1:16], collapse=" + "), "+
 
 slxm1<-inla(fslx,
    data=Katrina2, family="binomial",
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 

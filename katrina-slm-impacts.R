@@ -96,7 +96,7 @@ lcsdem<-impactlclag(Dfsdem, rownames(sdemm1$summary.fixed)[-1], nvars)
 sdemm1<-inla(fsdem,
    data=Katrina2, family="binomial",
    lincomb=lcsdem,
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
@@ -105,7 +105,7 @@ lcslx<-impactlclag(Dfslx, rownames(slxm1$summary.fixed)[-1], nvars)
 slxm1<-inla(fslx,
    data=Katrina2, family="binomial",
    lincomb=lcslx,
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
@@ -137,7 +137,7 @@ sdmm1<-inla( y1 ~ -1 +
       hyper=hyper.slm),
    lincomb=lcsdm,
    data=Katrina, family="binomial",
-   control.family = list(link="probit", hyper=zero.variance),
+   control.family = list(link="probit"),
    control.compute=list(dic=TRUE, cpo=TRUE)
 )
 
