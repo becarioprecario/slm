@@ -133,9 +133,9 @@ rownames(tabii) <- colnames(imp_semm1_all)
 #Produce tables for the paper
 library(xtable)
 
-print(xtable(tabdi, digits = 5))
-print(xtable(tabti, digits = 5))
-print(xtable(tabii, digits = 5))
+print(xtable(tabdi, digits = 3))
+print(xtable(tabti, digits = 3))
+print(xtable(tabii, digits = 3))
 
 #Compute impacts using spatialprobit (used for comparison purposes)
 library(spatialprobit)

@@ -175,7 +175,7 @@ tabrhotrans <- data.frame(cbind(
 #   SLX = as.numeric(NA)#slxm1$summary.hyper[2,1]
 ))
 
-xtable(round(tabrhotrans, 4), digits=3)
+xtable(round(tabrhotrans, 4), digits = 3)
 
 
 #Plot of rho: ORIGINAL marginals
