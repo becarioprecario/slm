@@ -137,9 +137,9 @@ tabin$INLASLX <- slxm1$summary.fixed[1 + nvars + 1:nvars, "mean"]
 #Produce tables for the paper
 library(xtable)
 
-print(xtable(tabdi, digits = 5))
-print(xtable(tabti, digits = 5))
-print(xtable(tabin, digits = 5))
+print(xtable(tabdi, digits = 3))
+print(xtable(tabti, digits = 3))
+print(xtable(tabin, digits = 3))
 
 
 #Create tables of the fixed effects so that thay are equal
@@ -159,7 +159,7 @@ tabfixed <- data.frame(
 
 #Create table in LaTeX format
 library(xtable)
-xtable(round(tabfixed, 5), digits=5)
+xtable(round(tabfixed, 5), digits = 3)
 
 #Transform Spatial autocorrelation parameters to be in  (rho.min, rho.max)
 #

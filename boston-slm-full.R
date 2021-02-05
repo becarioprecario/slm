@@ -173,7 +173,7 @@ rownames(tabfixed) <- colnames(mmatrix)
 
 #Create table in LaTeX format
 library(xtable)
-xtable(round(tabfixed, 5), digits = 5)
+xtable(round(tabfixed, 5), digits = 3)
 
 
 #Transform Spatial autocorrelation parameters to be in  (rho.min, rho.max)
@@ -244,7 +244,7 @@ system("convert Boston-rho-trans-full.pdf Boston-rho-trans-full.eps")
 
 #SEM model
 semm1rw2 <- inla(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + 
-   f(NOX, model = "rw2", hyper = list(theta = list(param = c(1, 1))))+
+   f(NOX, model = "rw2", scale.model = TRUE, hyper = list(theta = list(param = c(1, 1))))+
    I(RM^2) +
    AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT)+
    f(idx, model = "slm", args.slm = args.slm, hyper = hyper.slm),
@@ -258,7 +258,7 @@ dev.off()
 #SDEM model
 fsdemrw2 <- update(fsdem, . ~ . - var5 - var18)
 fsdemrw2 <- update(fsdemrw2, . ~ . +
-  f(var5, model = "rw2", hyper = list(theta = list(param =c(1, 1)))) )
+  f(var5, model = "rw2", scale.model = TRUE, hyper = list(theta = list(param =c(1, 1)))) )
 
 sdemm1rw2 <- inla(fsdemrw2,
    data = boston.c2, family = "gaussian",
@@ -271,7 +271,7 @@ plot(sdemm1rw2, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
 #SLX model
 fslxrw2 <- update(fslx, . ~ . - var5 - var18)
 fslxrw2 <- update(fslxrw2, . ~ . + 
-  f(var5, model = "rw2", hyper = list(theta = list(param = c(1, 1)))) )
+  f(var5, model = "rw2", scale.model = TRUE, hyper = list(theta = list(param = c(1, 1)))) )
 #  f(inla.group(var5), model = "rw2",
 #    hyper = list(theta = list(param = c(1, 1)))) )
 
