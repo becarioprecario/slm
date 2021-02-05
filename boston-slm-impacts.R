@@ -2,6 +2,14 @@
 #Compute impacts using the models fitted to the Boston dataset
 #
 
+#NOTE: Impacts rely on a series approximation to (I - rho * W) ^{-1}
+# using the eigenvalues of W.
+#
+# FIXME: Use the implementation in LeSage and Pace (2005), Sect. 4.9, page 114-...
+# 
+# ALSO: Rspectre may be used to obtain the range of the spat. auto. param.
+#
+
 #Load libraries
 library(INLA)
 library(INLABMA)
