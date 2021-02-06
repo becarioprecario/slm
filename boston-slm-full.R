@@ -242,9 +242,12 @@ system("convert Boston-rho-trans-full.pdf Boston-rho-trans-full.eps")
 #Check other form for NOX using a continuous random walk. Will
 #not work with SLM and SDM as covariates are inside the 'slm' class
 
+# Prior on the rw2 prec assumes: mean = 2000, variance = 10
+
+
 #SEM model
 semm1rw2 <- inla(log(CMEDV) ~ CRIM + ZN + INDUS + CHAS + 
-   f(NOX, model = "rw2", hyper = list(theta = list(param = c(1, 1))))+
+   f(NOX, model = "rw2", scale.model = TRUE, hyper = list(theta = list(param = c(2000 * 2000 / 10, 2000 / 10))))+
    I(RM^2) +
    AGE + log(DIS) + log(RAD) + TAX + PTRATIO + B + log(LSTAT)+
    f(idx, model = "slm", args.slm = args.slm, hyper = hyper.slm),
@@ -258,7 +261,7 @@ dev.off()
 #SDEM model
 fsdemrw2 <- update(fsdem, . ~ . - var5 - var18)
 fsdemrw2 <- update(fsdemrw2, . ~ . +
-  f(var5, model = "rw2", hyper = list(theta = list(param =c(1, 1)))) )
+  f(var5, model = "rw2", scale.model = TRUE, hyper = list(theta = list(param = c(2000 * 2000 / 10, 2000 / 10)))) )
 
 sdemm1rw2 <- inla(fsdemrw2,
    data = boston.c2, family = "gaussian",
@@ -271,7 +274,7 @@ plot(sdemm1rw2, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE)
 #SLX model
 fslxrw2 <- update(fslx, . ~ . - var5 - var18)
 fslxrw2 <- update(fslxrw2, . ~ . + 
-  f(var5, model = "rw2", hyper = list(theta = list(param = c(1, 1)))) )
+  f(var5, model = "rw2", scale.model = TRUE, hyper = list(theta = list(param = c(2000 * 2000 / 10, 2000 / 10)))) )
 #  f(inla.group(var5), model = "rw2",
 #    hyper = list(theta = list(param = c(1, 1)))) )
 
@@ -287,16 +290,19 @@ pdf(file = "NOX-full.pdf", width = 5, height = 2.5)
 
 par(mfrow = c(1, 3))
 plot(semm1rw2$summary.random$NOX[, 1:2], type = "l", lwd = 2,
+  ylim = c(-0.4, 0.2),
   main = "SEM model", xlab = "NOX", ylab = "f(NOX)")
 lines(semm1rw2$summary.random$NOX[, c(1, 4)], lty = 2)
 lines(semm1rw2$summary.random$NOX[, c(1, 6)], lty = 2)
 
 plot(sdemm1rw2$summary.random$var5[, 1:2], type = "l", lwd = 2,
+  ylim = c(-0.4, 0.2),
   main = "SDEM model", xlab = "NOX", ylab = "f(NOX)")
 lines(sdemm1rw2$summary.random$var5[, c(1, 4)], lty = 2)
 lines(sdemm1rw2$summary.random$var5[, c(1, 6)], lty = 2)
 
 plot(slxm1rw2$summary.random$var5[, 1:2], type = "l", lwd = 2,
+  ylim = c(-0.4, 0.2),
   main = "SLX model", xlab = "NOX", ylab = "f(NOX)")
 lines(slxm1rw2$summary.random$var5[, c(1, 4)], lty = 2)
 lines(slxm1rw2$summary.random$var5[, c(1, 6)], lty = 2)
