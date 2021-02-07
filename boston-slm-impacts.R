@@ -57,16 +57,18 @@ names(lcsdem) <- nms[1:nvars]
 #Refit models
 sdemm1 <- inla(fsdem,
   data = boston.c2, family = "gaussian",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
   lincomb = lcsdem,
   control.family = list(hyper = zero.variance),
   control.compute = list(dic = TRUE, cpo = TRUE)
 )
 
 slxm1 <- inla(fslx,
-   data = boston.c2, family = "gaussian",
-   lincomb = lcsdem,
-   control.family = list(hyper = zero.variance),
-   control.compute = list(dic = TRUE, cpo = TRUE)
+  data = boston.c2, family = "gaussian",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+  lincomb = lcsdem,
+  control.family = list(hyper = zero.variance),
+  control.compute = list(dic = TRUE, cpo = TRUE)
 )
 
 
@@ -111,8 +113,8 @@ imp_sdmm1 <- sapply(1:13, function(n.var) {
 
 #Compute impacts for ML models
 trs <- trW(as(lw, "CsparseMatrix"))
-impm2<-impacts(m2, tr=trs)#SLM
-impm3<-impacts(m3, tr=trs)#SDM
+impm2 <- impacts(m2, tr = trs)#SLM
+impm3 <- impacts(m3, tr = trs)#SDM
 
 
 #Create table with summary results
@@ -139,7 +141,7 @@ tabin$INLASDEM <- sdemm1$summary.fixed[1 + nvars + 1:nvars, "mean"]
 
 #ADD SLX
 tabti$INLASLX <- slxm1$summary.lincomb.derived[, "mean"]
-tabdi$INLASLX <-  slxm1$summary.fixed[1 + 1:nvars, "mean"]
+tabdi$INLASLX <- slxm1$summary.fixed[1 + 1:nvars, "mean"]
 tabin$INLASLX <- slxm1$summary.fixed[1 + nvars + 1:nvars, "mean"]
 
 #Produce tables for the paper
@@ -183,11 +185,11 @@ sdemmarg <- inla.tmarginal(ff, sdemm1$marginals.hyperpar[[2]])
 #R-INLA MODEL SCALE
 #
 tabrhotrans <- cbind(
-   SEM = unlist(inla.zmarginal(semmarg)[c(1, 2, 3, 7)], FALSE),
-   SLM = unlist(inla.zmarginal(slmmarg)[c(1, 2, 3, 7)], FALSE),
-   SDM = unlist(inla.zmarginal(sdmmarg)[c(1, 2, 3, 7)], FALSE),
-   SDEM = unlist(inla.zmarginal(sdemmarg)[c(1, 2, 3, 7)], FALSE)
-#   SLX = as.numeric(NA)#slxm1$summary.hyper[2,1]
+  SEM = unlist(inla.zmarginal(semmarg)[c(1, 2, 3, 7)], FALSE),
+  SLM = unlist(inla.zmarginal(slmmarg)[c(1, 2, 3, 7)], FALSE),
+  SDM = unlist(inla.zmarginal(sdmmarg)[c(1, 2, 3, 7)], FALSE),
+  SDEM = unlist(inla.zmarginal(sdemmarg)[c(1, 2, 3, 7)], FALSE)
+#  SLX = as.numeric(NA)#slxm1$summary.hyper[2,1]
 )
 #xtable(round(tabrho, 4), digits=3)
 

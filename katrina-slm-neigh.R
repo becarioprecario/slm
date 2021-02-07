@@ -21,41 +21,43 @@ mm <- model.matrix(y1 ~ 1 + flood_depth + log_medinc + small_size + large_size +
 
 # (a) 0-3 months time horizon
 # LeSage et al. (2011) use k=11 nearest neighbors in this case
-nb <- knn2nb(knearneigh(cbind(Katrina$long, Katrina$lat), k=11, longlat=TRUE))
-listw <- nb2listw(nb, style="W")
+nb <- knn2nb(knearneigh(cbind(Katrina$long, Katrina$lat), k = 11,
+  longlat = TRUE))
+listw <- nb2listw(nb, style = "W")
 W1 <- as(listw, "CsparseMatrix")
 
 
 #Variance-covarinace matrix for beta coeffients' prior
 #
-betaprec1 <- 0.0001
+betaprec1 <- 1e-12 #0.0001
 #Standard regression model
 Q.beta1 = Diagonal(n = ncol(mm), x = 1)
 Q.beta1 = betaprec1 * Q.beta1
 
 
 #Compute SLM model under different number of nearest neighbours 
-vnneigh<-5:35
-mneigh<-mclapply(vnneigh, function(k){
+vnneigh <- 5:35
+mneigh <- mclapply(vnneigh, function(k){
 
-	nb <- knn2nb(knearneigh(cbind(Katrina$long, Katrina$lat), k=k, longlat=TRUE))
-	listw <- nb2listw(nb, style="W")
-	W1 <- as(listw, "CsparseMatrix")
+  nb <- knn2nb(knearneigh(cbind(Katrina$long, Katrina$lat), k=k, longlat=TRUE))
+  listw <- nb2listw(nb, style="W")
+  W1 <- as(listw, "CsparseMatrix")
 
-#SLM model
-m2inlaK = inla(y1~ -1 +
-        f(idx, model="slm",
-        args.slm = list(
-                rho.min = 0, rho.max = 1, W = W1, X = mm,
-                Q.beta = Q.beta1),
-        hyper = list(
-                prec = list(initial=log(1), fixed=TRUE),
-                rho = list(prior = "logitbeta", param = c(1, 1)))),
-        data = Katrina,
-        family = "binomial",
-        control.family = list(link = "probit"),
-        control.compute=list(dic=TRUE),
-        verbose=FALSE)
+  #SLM model
+  m2inlaK = inla(y1 ~ -1 +
+    f(idx, model = "slm",
+      args.slm = list(
+        rho.min = 0, rho.max = 1, W = W1, X = mm,
+        Q.beta = Q.beta1),
+      hyper = list(
+        prec = list(initial = log(1), fixed = TRUE),
+        rho = list(prior = "logitbeta", param = c(1, 1)))),
+    data = Katrina,
+    control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+    family = "binomial",
+    control.family = list(link = "probit"),
+    control.compute = list(dic = TRUE),
+    verbose = FALSE)
 
 })
 

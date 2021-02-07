@@ -68,39 +68,45 @@ args.slm <- list(
 #effect and the spatial autocorrelation parameter (in the (0,1) interval).
 #
 hyper.slm <- list(
-   prec = list(initial = log(1), fixed = TRUE),#prior = "loggamma", param = c(0.01, 0.01)),
-      rho = list(prior = "logitbeta", param = c(1, 1))#list(initial=0, prior = "logitbeta", param = c(1,1))
+  prec = list(initial = log(1), fixed = TRUE),#prior = "loggamma", param = c(0.01, 0.01)),
+  theta2 = list(prior = "logitbeta", param = c(1, 1))#list(initial=0, prior = "logitbeta", param = c(1,1))
 )
 
 #SEM model
-semm1<-inla(
-   update(f1, ~.+f(idx, model="slm", args.slm=args.slm, hyper=hyper.slm)),
-   data=Katrina, family="binomial",
-   control.family = list(link="probit"),
-   control.compute=list(dic=TRUE, cpo=TRUE, config = TRUE)
+semm1 <- inla(
+  update(f1, ~ . + f(idx, model = "slm", args.slm = args.slm,
+    hyper = hyper.slm)),
+  data = Katrina, family = "binomial",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+  control.family = list(link = "probit"),
+  control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
 )
+inla.priors.used(semm1)
+
 
 #SLM model
 slmm1<-inla( y1 ~ -1 +
-   f(idx, model="slm",
-      args.slm=list(rho.min = rho.min, rho.max = rho.max, W=W1, X=mm,
-         Q.beta=Q.beta1),
-      hyper=hyper.slm),
-   data=Katrina, family="binomial",
-   control.family = list(link="probit"),
-   control.compute=list(dic=TRUE, cpo=TRUE, config = TRUE)
+  f(idx, model="slm",
+    args.slm = list(rho.min = rho.min, rho.max = rho.max, W = W1, X = mm,
+      Q.beta = Q.beta1),
+    hyper = hyper.slm),
+  data = Katrina, family = "binomial",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+  control.family = list(link = "probit"),
+  control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
 )
 
 
 #SDM model
 sdmm1<-inla( y1 ~ -1 +
-   f(idx, model="slm",
-      args.slm=list(rho.min = rho.min, rho.max = rho.max, W=W1, X=mm2,
-         Q.beta=Q.beta2),
-      hyper=hyper.slm),
-   data=Katrina, family="binomial",
-   control.family = list(link="probit"),
-   control.compute=list(dic=TRUE, cpo=TRUE, config = TRUE)
+  f(idx, model = "slm",
+    args.slm = list(rho.min = rho.min, rho.max = rho.max, W = W1, X = mm2,
+      Q.beta = Q.beta2),
+    hyper = hyper.slm),
+  data = Katrina, family = "binomial",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+  control.family = list(link="probit"),
+  control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
 )
 
 #SDEM model (this requires a previous setup)
@@ -117,10 +123,11 @@ fsdem <- as.formula(paste("y1 ~ ", paste(names(Katrina2)[1:16], collapse=" + "),
     collapse = ""))
 
 #Fit SDEM model
-sdemm1<-inla(fsdem,
-   data=Katrina2, family="binomial",
-   control.family = list(link="probit"),
-   control.compute=list(dic=TRUE, cpo=TRUE, config = TRUE)
+sdemm1 <- inla(fsdem,
+  data = Katrina2, family = "binomial",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+  control.family = list(link = "probit"),
+  control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
 )
 
 #SLX model
@@ -128,10 +135,11 @@ fslx <- as.formula(paste("y1 ~ ",
   paste(names(Katrina2)[1:16], collapse = " + "),
     "+f(idx, model = \"iid\")", collapse = ""))
 
-slxm1<-inla(fslx,
-   data=Katrina2, family="binomial",
-   control.family = list(link="probit"),
-   control.compute=list(dic=TRUE, cpo=TRUE, config = TRUE)
+slxm1 <- inla(fslx,
+  data = Katrina2, family = "binomial",
+  control.fixed = list(prec = 1e-12, prec.intercept = 1e-12),
+  control.family = list(link = "probit"),
+  control.compute = list(dic = TRUE, cpo = TRUE, config = TRUE)
 )
 
 

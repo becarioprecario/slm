@@ -67,7 +67,7 @@ imp_slmm1 <- inla.posterior.sample.eval(compute_impacts_slm_probit, samp_slmm1,
   W = W1, n.areas = nrow(Katrina), n.var = 1, mmatrix = mm)
 apply(imp_slmm1, 1, mean)
 
-# Impacts SDEM
+# Impacts SDM
 colnames(mm2) <- c(colnames(mm), paste0("lag.", colnames(mm)[-1]))
 imp_sdmm1 <- inla.posterior.sample.eval(compute_impacts_slm_probit,
   samp_sdmm1, W = W1, n.areas = nrow(Katrina), e.values = NULL, n.var = 1,
