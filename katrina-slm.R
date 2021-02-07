@@ -39,6 +39,10 @@ rho.max <- 1 / max(Re(e[re.idx]))
 rho.min <- 1 / min(Re(e[re.idx]))
 rho <- mean(c(rho.min, rho.max))
 
+# Set minimum value to -1 instead of about -3 acoridng to eigenvalues
+# ALso this mathches the code in spatialprobit
+rho.min <- -1
+
 
 
 #Variance-covarinace matrix for beta coeffients' prior
