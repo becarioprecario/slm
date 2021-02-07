@@ -229,36 +229,6 @@ dev.off()
 
 # Plot some of the impacts for checking
 
-
-
-
-
-
-#Use Gaussian approximation with mean and variance of the product of
-#two random variables
-#E[X * Y] =E[X] * E[Y]
-#VAR[X * Y]=(E[X]^2) * VAR[Y]+(E[Y]^2) * VAR[X] + VAR[X] * VAR[Y]
-#          =E[X^2]*E[Y^2]-(E[X]*E[Y])^2 
-#X=1/(1-\rholag))
-#Y=\beta_r
-
-appimpacts<-function(meanX, meanY, sdX, sdY)
-{
-	meanXY=meanX*meanY
-	varXY=(meanX*sdY)^2+(meanY*sdX)^2+(sdX*sdY)^2
-
-	return(list(meanXY=meanXY, varXY=varXY))
-}
-
-#Approximation for SLM
-#appslmnox<-appimpacts(
-#   inla.zmarginal(invrhoslm,TRUE)$mean, slmm1$summary.random$idx[490+1+5,]$mean,
-#   inla.zmarginal(invrhoslm,TRUE)$sd, slmm1$summary.random$idx[490+1+5,]$sd)
-#Approximation for SDM
-#appsdmnox<-appimpacts(
-#   inla.zmarginal(invrhosdm,TRUE)$mean, sdmm1$summary.lincomb.derived[5,]$mean,
-#   inla.zmarginal(invrhosdm,TRUE)$sd, sdmm1$summary.lincomb.derived[5,]$sd)
-
 # Compute the impacts for NOX-squared
 n.var <- 5
 NOX2_imp_slm <- inla.posterior.sample.eval(compute_impacts_slm, samp_slmm1,
