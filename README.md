@@ -12,8 +12,6 @@ Files available are:
 * `katrina-slm-neigh.R`: Selection of the number of optimal nearest neighbours for the adjacency matrix using the Katrina business data.
 * `katrina-slm-impacts.R`: Computation of the impacts for the Katrina business data example.
 
-In addition, the MCMC output for some spatial econometrics models for the Boston dataset are under directory `Boston_MCMC_Matlab`.
+In addition, we provide a customized version of package `spatialprobit` that sets the variacne of the random effect to 1 in the SEM probit model. It is already set to 1 in the SAR probit model.
 
-**Note that this is old code and that may not work straight away with the latest version of some spatial packages.**
 
-Updated code is under branch *update*. This should run on recent versions of R and packages.
