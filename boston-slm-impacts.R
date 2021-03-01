@@ -298,10 +298,10 @@ dev.off()
 #Display total impacts for NOX-squared INCLUDING MCMC impacts for SLM and SDM
 pdf(file="NOXtotimpacts-2.pdf")
 #SEM
-plot(semm1$marginals.fixed$`I(NOX^2)`, lty = 2, type="l", xlim = c(-2, .5), 
+plot(semm1$marginals.fixed$`I(NOX^2)`, lty = 2, type = "l", xlim = c(-2, .5), 
   ylim = c(0, 3.1))
 #SLM
-lines(density(NOX2_imp_slm[3, ]), lty = 2)
+lines(density(NOX2_imp_slm[3, ]), lty = 1)
 #SDM
 lines(density(NOX2_imp_sdm[3, ]), lty = 3)
 #SDEM
