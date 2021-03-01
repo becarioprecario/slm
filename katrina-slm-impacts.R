@@ -148,59 +148,25 @@ mmlag <- data.frame(mm2[, 10:17])
 Katrina <- cbind(Katrina, mmlag)
 
 
+# Load MCMC results
+load("katrina-spatialprobit.RData")
 
-if(!file.exists("katrina-spatialprobit.RData")){
-fit1 <- semprobit(y1 ~ flood_depth + log_medinc + small_size + large_size +
-  low_status_customers +  high_status_customers + 
-  owntype_sole_proprietor + owntype_national_chain, 
-  W = W1, data = Katrina, ndraw = 25000, burn.in = 5000, showProgress = TRUE)
+# SEM model
 summary(fit1)
-
 #impacts(fit1)
 
-fit1lag <- semprobit(y1 ~ flood_depth + log_medinc + small_size + large_size +
-   low_status_customers +  high_status_customers + 
-   owntype_sole_proprietor + owntype_national_chain +
-   lag.flood_depth + lag.log_medinc + lag.small_size + lag.large_size +
-   lag.low_status_customers +  lag.high_status_customers +
-   lag.owntype_sole_proprietor + lag.owntype_national_chain, 
-   W = W1, data = Katrina, ndraw = 25000, burn.in = 5000, showProgress = TRUE)
+# SDEM model
 summary(fit1lag)
-
 #impacts(fit1lag)
 
 
-
-fit2 <- sarprobit(y1 ~ flood_depth + log_medinc + small_size + large_size +
-   low_status_customers +  high_status_customers + 
-   owntype_sole_proprietor + owntype_national_chain, 
-   W = W1, data = Katrina, ndraw = 25000, burn.in = 5000, showProgress = TRUE)
+# SLM model
 summary(fit2)
-
 impacts(fit2)
 
-
-
-fit2lag <- sarprobit(y1 ~ flood_depth + log_medinc + small_size + large_size +
-   low_status_customers +  high_status_customers +
-   owntype_sole_proprietor + owntype_national_chain +
-   lag.flood_depth + lag.log_medinc + lag.small_size + lag.large_size +
-   lag.low_status_customers +  lag.high_status_customers +
-   lag.owntype_sole_proprietor + lag.owntype_national_chain,
-   W = W1, data = Katrina, ndraw = 25000, burn.in = 5000, showProgress = TRUE)
+# SDM model
 summary(fit2lag)
-
 impacts(fit2lag)
-
-
-
-
-  save(file = "katrina-spatialprobit.RData", 
-  list = c("fit1", "fit1lag", "fit2", "fit2lag"))
-} else {
-  load("katrina-spatialprobit.RData")
-}
-
 
 #Compute direct impacts (flood_depth) for several models
 idx.cov <- 2 #Flood depth
@@ -304,9 +270,8 @@ lines(density(fit2$total[, 1]), col = "red")
 dev.off()
 
 
-# Compara all impacts
-# INLA impacts are approximated using a Gaussian distribution
-#  but the actual samples could be used
+# Compare all impacts
+# INLA impacts are approximated using sampling
 
 # DIRECT impacts
 pdf(file = "katrina-directimpacts-comparison.pdf")
