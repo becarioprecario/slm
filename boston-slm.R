@@ -27,7 +27,7 @@ lw <- spdep::nb2listw(boston_nb_1, style="W")
 
 #Define some indices used in the models
 n <- nrow(boston.c)
-boston.c$idx<-1:n
+boston.c$idx <- 1:n
 
 #Adjcency matrix
 #W<-nb2mat(boston.soi)
